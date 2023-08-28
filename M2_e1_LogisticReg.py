@@ -6,7 +6,7 @@ import math
 import matplotlib.pyplot as plt
 
 # ETL
-
+print('good')
 columns = ["class","cap-shape","cap-surface","cap-color","bruises",
            "odor","gill-attachment","gill-spacing","gill-size",
            "gill-color","stalk-shape","stalk-root","stalk-surface-above-ring",
@@ -29,7 +29,8 @@ newdf = df.copy()
 #print(list(newdf))
 newdf = newdf.sample(frac=1)
 #slice_df = (1-len(newdf))
-newdf_x = newdf[(1-len(newdf.columns)):]
+#newdf_x = newdf[(1-len(newdf.columns)):]
+newdf_x = newdf.loc[:, 'cap-shape_b':'habitat_w']
 newdf_y = newdf[['class']]
 
 dflen = len(newdf)
@@ -41,6 +42,14 @@ train_y = newdf_y[:][:trainS]
 test_x = newdf_x[:][-testS:]
 test_y = newdf_y[:][-testS:]
 
+print('size: ',testS)
+print('dflen: ',dflen)
+
+print(test_y)
+print(test_x)
+print('lens')
+print(len(newdf_y))
+print(len(newdf_x))
 # Logistic Regression
 
 def h(params, data): #evaluates h(x) = 1/(1+e^-x), f(x) = a+bx1+cx2+ ... nxn..
@@ -143,8 +152,7 @@ while True: # run gradient descent until local minima is reached
 		print("final params:")
 		print(params)
 		break
-plt.plot(__errors__)
-plt.show()
+
 # train_x = newdf_x[:][:trainS]
 # train_y = newdf_y[:][:trainS]
 
@@ -159,5 +167,12 @@ for i in range(len(test_x)):
 	print("Expected=%.3f, Predicted=%.3f [%d]" % (test_y.iloc[i], y_pred, round(y_pred)))
 	m_guesses.append(round(y_pred))
 
-df_confusion = pd.crosstab(test_y, m_guesses, rownames=['Actual'], colnames=['Predicted'], margins=True)
+act_y = test_y.to_numpy()
+act_y = act_y.flatten()
+print(len(test_y))
+print(len(test_x))
+df_confusion = pd.crosstab(act_y, m_guesses, rownames=['Actual'], colnames=['Predicted'], margins=True)
 print(df_confusion)
+
+plt.plot(__errors__)
+plt.show()
