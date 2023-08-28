@@ -18,18 +18,20 @@ temp = df[["cap-shape","cap-surface","cap-color",
            "odor","stalk-shape","stalk-root","stalk-surface-above-ring",
            "stalk-surface-below-ring","stalk-color-above-ring","stalk-color-below-ring",
            "spore-print-color","population","habitat"]]
-
+# temp df has less features because when doing the convertion to onehot the resulting df is really big, makes it longer to calculate
 temp1Hot = pd.get_dummies(temp, dtype=float)
 
 df = df[["class"]].join(temp1Hot)
 
-df['class'] = df['class'].apply(lambda letter: 1.0 if letter=='e' else 0.0)
+df['class'] = df['class'].apply(lambda letter: 1.0 if letter=='e' else 0.0)#converts class to float
+#if e or 1 it is posonous, else its edible
 
 newdf = df.copy()
 #print(list(newdf))
-newdf = newdf.sample(frac=1)
+newdf = newdf.sample(frac=1)# mix the dataset
 #slice_df = (1-len(newdf))
 #newdf_x = newdf[(1-len(newdf.columns)):]
+#slicing to make the test and trains
 newdf_x = newdf.loc[:, 'cap-shape_b':'habitat_w']
 newdf_y = newdf[['class']]
 
@@ -42,14 +44,16 @@ train_y = newdf_y[:][:trainS]
 test_x = newdf_x[:][-testS:]
 test_y = newdf_y[:][-testS:]
 
-print('size: ',testS)
-print('dflen: ',dflen)
+# print('size: ',testS)
+# print('dflen: ',dflen)
 
-print(test_y)
-print(test_x)
-print('lens')
-print(len(newdf_y))
-print(len(newdf_x))
+# print(test_y)
+# print(test_x)
+# print('lens')
+# print(len(newdf_y))
+# print(len(newdf_x))
+
+
 # Logistic Regression
 
 def h(params, data): #evaluates h(x) = 1/(1+e^-x), f(x) = a+bx1+cx2+ ... nxn..
@@ -60,19 +64,19 @@ def h(params, data): #evaluates h(x) = 1/(1+e^-x), f(x) = a+bx1+cx2+ ... nxn..
     hx = 1/(1+math.exp(-acum))
     return hx
 
-def GD(params, data, y, alpha):
+def GD(params, data, y, alpha):#Calculates the gradient descent
     print('enter gd, give it time')
     nparams = list(params)
     for j in range(len(params)):
         acum =0
         for i in range(len(data)):
             c_df_row = data.iloc[i]
-            error = h(params, c_df_row) - y.iloc[i]
-            acum = acum + error * c_df_row[j]  #Sumatory part of the Gradient Descent formula for linear Regression.
+            error = h(params, c_df_row) - y.iloc[i] #Calculates the hypothesis
+            acum = acum + error * c_df_row[j]  #Sumatory part of the Gradient Descent formula
             nparams[j] = params[j] - alpha*(1/len(data))*acum  #Subtraction of original value with learning rate included.
     return nparams
 
-def show_errors(params, data, y): #The cost function, in logistic regression is Logistic Cost Function
+def show_errors(params, data, y): #The cost function, in logistic regression it´s Logistic Cost Function
 	global __errors__
 	print('enter show errors')
 	#print(data)
@@ -90,12 +94,12 @@ def show_errors(params, data, y): #The cost function, in logistic regression is 
 	"""
 	for i in range(len(data)):
 		#print('enters for i ', i)
-		hyp = h(params, data.iloc[i])
+		hyp = h(params, data.iloc[i])#calculates the hypothesis
 		#print('exits hyp fun')
 		#print(type(y.iloc[0]))
 		#print(y.iloc[0])
 		
-		val_y = y.iloc[i].item()
+		val_y = y.iloc[i].item() #Extracts pandas series value
 		#print(val_y)
 		if(val_y == 1.0): # avoid the log(0) error
 			if(hyp ==0.0):
@@ -117,10 +121,10 @@ def show_errors(params, data, y): #The cost function, in logistic regression is 
 # LG setup
 __errors__= []
 
-params = np.zeros(len(train_x.columns))#not len of og df because we are adding bias
+params = np.zeros(len(train_x.columns))#creates n params of the n size of train dataset
 
 alfa =.03  #  learning rate
-print('b b',len(train_x))
+#print('b b',len(train_x))
 bias = np.ones(len(train_x))
 train_x["Bias"] = bias #  Include bias into train & test dataset 
 
@@ -140,13 +144,14 @@ while True: # run gradient descent until local minima is reached
 	params = GD(params, train_x, train_y, alfa)	
 	error = show_errors(params, train_x, train_y) # only used to show errors, it is not used in calculation
 	print(params)
-	params_alt = lambda x: params[x].item(), params
+	params_alt = lambda x: params[x].item(), params#Extracts pandas series values into floats
 	# print(type(oldparams[0]))
 	# print(type(error))
-	epoch += 1
+	
 	print(epoch)
+	epoch += 1
 	# local minima is found when there is no further improvement, stop when error is 0, or epoch = n
-	if(oldparams == params_alt or error < 0.1 or epoch == 1): 
+	if(oldparams == params_alt or error < 0.1 or epoch == 1): #epoch of 1 is very low, but works for a quick demo
 		print("Data:")
 		print(train_x)
 		print("final params:")
@@ -163,7 +168,7 @@ while True: # run gradient descent until local minima is reached
 m_guesses = []
 for i in range(len(test_x)):
 	c_df_row = test_x.iloc[i]
-	y_pred = h(params, c_df_row)
+	y_pred = h(params, c_df_row)# calculates y value by using the hypothesis
 	print("Expected=%.3f, Predicted=%.3f [%d]" % (test_y.iloc[i], y_pred, round(y_pred)))
 	m_guesses.append(round(y_pred))
 
@@ -172,6 +177,8 @@ act_y = act_y.flatten()
 print(len(test_y))
 print(len(test_x))
 df_confusion = pd.crosstab(act_y, m_guesses, rownames=['Actual'], colnames=['Predicted'], margins=True)
+print('------------CONFUSION MATRIX------------')
+print(type(df_confusion))
 print(df_confusion)
 
 """
@@ -180,6 +187,9 @@ act_NO		trueNO		falseYES		totalNumberOfNo's
 act_YES		falseNO		trueYes			totalNumberOfYes's
 total		totNoPreds	totYesPreds		totalNumberOfPreds
 """
+print('Accuracy: ',((df_confusion.iloc[1][1] + df_confusion.iloc[0][0])/df_confusion.iloc[2]['All']))
+print('Misclassification Rate: ',((df_confusion.iloc[1][0] + df_confusion.iloc[0][1])/df_confusion.iloc[2]['All']))
+print('Precision: ',((df_confusion.iloc[1][1])/df_confusion.iloc[1]['All']))
 
-plt.plot(__errors__)
+plt.plot(__errors__)#needs more epochs, if it is at 1 it won´t show becuase the movement of the error is so small
 plt.show()
