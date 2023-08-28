@@ -174,5 +174,12 @@ print(len(test_x))
 df_confusion = pd.crosstab(act_y, m_guesses, rownames=['Actual'], colnames=['Predicted'], margins=True)
 print(df_confusion)
 
+"""
+			pred_NO		pred_YES		total
+act_NO		trueNO		falseYES		totalNumberOfNo's
+act_YES		falseNO		trueYes			totalNumberOfYes's
+total		totNoPreds	totYesPreds		totalNumberOfPreds
+"""
+
 plt.plot(__errors__)
 plt.show()
